@@ -1,213 +1,302 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ Auth::user()->dark_mode ? 'dark' : '' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Chatify') }} - @yield('title', 'Chat')</title>
+    <title>@yield('title') - {{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap" rel="stylesheet" />
 
-    <!-- Scripts and Styles -->
+    <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Apple-Inspired Theme -->
     <style>
-        /* Custom chat-specific styles that complement Tailwind */
-        .chat-messages {
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e0 #f7fafc;
+        /* Apple-Inspired Design System */
+        :root {
+            /* Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --bg-tertiary: #fbfbfd;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --text-tertiary: #515154;
+            --border-light: #d2d2d7;
+            --border-medium: #a1a1a6;
+            --accent-blue: #007aff;
+            --accent-blue-hover: #0056cc;
+            --accent-green: #30d158;
+            --accent-red: #ff3b30;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --shadow-heavy: rgba(0, 0, 0, 0.25);
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-weight-light: 300;
+            --font-weight-regular: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 50%;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease-out;
+            --transition-medium: 0.25s ease-out;
+            --transition-slow: 0.35s ease-out;
         }
-        
-        .dark .chat-messages {
-            scrollbar-color: #6b7280 #374151;
+
+        * {
+            box-sizing: border-box;
         }
-        
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.47059;
+            font-weight: var(--font-weight-regular);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f7fafc;
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
-        .dark .chat-messages::-webkit-scrollbar-track {
-            background: #374151;
+
+        .chat-sidebar {
+            background-color: var(--bg-primary);
+            border-right: 1px solid var(--border-light);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
         }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
-            border-radius: 3px;
+
+        .chat-main {
+            background-color: var(--bg-primary);
         }
-        
-        .dark .chat-messages::-webkit-scrollbar-thumb {
-            background: #6b7280;
+
+        .message-input {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-fast);
+            font-family: var(--font-family);
         }
-        
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0;
+
+        .message-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
         }
-        
-        .dark .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-        
+
         .message-bubble {
-            word-wrap: break-word;
-            word-break: break-word;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 1px 2px var(--shadow-light);
         }
-        
-        /* Animation for new messages */
-        .message-enter {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: messageEnter 0.3s ease-out forwards;
+
+        .message-bubble.sent {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #5ac8fa 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
         }
-        
-        @keyframes messageEnter {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+
+        .chat-header {
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #5ac8fa 100%);
+            color: white;
+            border: none;
+            transition: all var(--transition-fast);
+            font-weight: var(--font-weight-medium);
+            box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent-blue-hover) 0%, #4fb3e1 100%);
+            box-shadow: 0 4px 8px rgba(0, 122, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .user-avatar {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #5ac8fa 100%);
+            color: white;
+            font-weight: var(--font-weight-semibold);
+            border: 2px solid var(--bg-primary);
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        .chat-item {
+            transition: all var(--transition-fast);
+            border-radius: var(--radius-md);
+            margin: 0 var(--spacing-sm);
+        }
+
+        .chat-item:hover {
+            background-color: var(--bg-secondary);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        .search-input {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .search-input:focus {
+            background-color: var(--bg-primary);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 30px var(--shadow-medium);
+        }
+
+        .text-primary-apple { color: var(--text-primary); }
+        .text-secondary-apple { color: var(--text-secondary); }
+        .text-tertiary-apple { color: var(--text-tertiary); }
+        .bg-primary-apple { background-color: var(--bg-primary); }
+        .bg-secondary-apple { background-color: var(--bg-secondary); }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-    <div class="h-screen overflow-hidden">
-        <div class="flex h-full">
-            <!-- Sidebar -->
-            <div class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-300">
-                <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                            <svg class="w-8 h-8 mr-2 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path>
-                            </svg>
-                            Chatify
-                        </h2>
-                        <div class="flex items-center space-x-3">
-                            <!-- Dark Mode Toggle -->
-                            <button id="dark-mode-toggle" 
-                                    class="dark-mode-toggle {{ Auth::user()->dark_mode ? 'active' : '' }}"
-                                    title="Toggle dark mode">
-                                <span class="toggle-icon sun-icon">☀️</span>
-                                <span class="toggle-icon moon-icon">🌙</span>
-                            </button>
-                            
-                            <div class="text-right">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ Auth::user()->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Online</p>
-                            </div>
-                            <form method="POST" action="{{ route('logout') }}" class="inline">
-                                @csrf
-                                <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                    </svg>
-                                </button>
-                            </form>
+<body>
+    <div class="min-h-screen">
+        <!-- Navigation -->
+        <nav class="nav-bar">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <!-- Logo -->
+                        <div class="shrink-0 flex items-center">
+                            <a href="{{ route('chat.index') }}" class="text-xl font-bold text-primary-apple">
+                                {{ config('app.name', 'Laravel') }}
+                            </a>
+                        </div>
+
+                        <!-- Navigation Links -->
+                        <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                            <a href="{{ route('chat.index') }}" 
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('chat.*') ? 'border-blue-500 text-primary-apple' : 'border-transparent text-secondary-apple hover:text-primary-apple hover:border-gray-300' }} text-sm font-medium transition-all duration-150">
+                                Messages
+                            </a>
+                            <a href="{{ route('groups.index') }}" 
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('groups.*') ? 'border-blue-500 text-primary-apple' : 'border-transparent text-secondary-apple hover:text-primary-apple hover:border-gray-300' }} text-sm font-medium transition-all duration-150">
+                                Groups
+                            </a>
                         </div>
                     </div>
-                    
-                    <!-- Navigation Tabs -->
-                    <div class="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                        <a href="{{ route('chat.index') }}" 
-                           class="flex-1 text-center py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 {{ request()->routeIs('chat.*') ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-600' }}">
-                            <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path>
-                            </svg>
-                            Private Chats
-                        </a>
-                        <a href="{{ route('groups.index') }}" 
-                           class="flex-1 text-center py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 {{ request()->routeIs('groups.*') ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-600' }}">
-                            <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
-                            </svg>
-                            Groups
-                        </a>
+
+                    <!-- Settings Dropdown -->
+                    <div class="hidden sm:flex sm:items-center sm:ml-6">
+                        <div class="relative" x-data="{ open: false }" @click.away="open = false" @close.stop="open = false">
+                            <div @click="open = ! open">
+                                <button class="flex items-center text-sm font-medium text-primary-apple hover:text-secondary-apple focus:outline-none transition duration-150 ease-in-out">
+                                    <div class="user-avatar w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                        {{ substr(Auth::user()->name, 0, 2) }}
+                                    </div>
+                                    <div>{{ Auth::user()->name }}</div>
+
+                                    <div class="ml-1">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <div x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute z-50 mt-2 w-48 origin-top-right right-0"
+                                style="display: none;">
+                                <div class="dropdown-menu py-1">
+                                    <!-- Authentication -->
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm leading-5 text-primary-apple hover:bg-secondary-apple focus:outline-none transition duration-150 ease-in-out">
+                                            {{ __('Log Out') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto bg-white dark:bg-gray-800">
-                    @yield('sidebar')
+            </div>
+        </nav>
+
+        <!-- Chat Layout -->
+        <div class="flex h-[calc(100vh-4rem)]">
+            <!-- Sidebar -->
+            <div class="w-[360px] chat-sidebar overflow-y-auto">
+                <!-- Search -->
+                <div class="p-4">
+                    <div class="relative">
+                        <input type="text" class="search-input w-full rounded-full pl-10 pr-4 py-3 focus:outline-none focus:ring-0 text-sm" 
+                            placeholder="Search messages">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-secondary-apple" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
+
+                @yield('sidebar')
             </div>
 
-            <!-- Main Chat Area -->
-            <div class="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-                @yield('content')
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col chat-main">
+                @yield('main-content')
             </div>
         </div>
     </div>
 
-    <script>
-        // Set up CSRF token for AJAX requests
-        window.Laravel = {
-            csrfToken: '{{ csrf_token() }}'
-        };
-        
-        // Add CSRF token to all AJAX requests
-        if (typeof $ !== 'undefined') {
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-        }
-        
-        // Dark mode toggle functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            const html = document.documentElement;
-            
-            if (darkModeToggle) {
-                darkModeToggle.addEventListener('click', function() {
-                    // Toggle the active class on the button
-                    this.classList.toggle('active');
-                    
-                    // Toggle dark class on html element
-                    html.classList.toggle('dark');
-                    
-                    // Get current state
-                    const isDarkMode = html.classList.contains('dark');
-                    
-                    // Send AJAX request to save preference
-                    fetch('{{ route("preferences.dark-mode.update") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            dark_mode: isDarkMode
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Show toast notification if available
-                            if (typeof window.showToast === 'function') {
-                                window.showToast(data.message, 'success');
-                            }
-                        } else {
-                            // Revert the toggle if the request failed
-                            this.classList.toggle('active');
-                            html.classList.toggle('dark');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error updating dark mode preference:', error);
-                        // Revert the toggle if the request failed
-                        this.classList.toggle('active');
-                        html.classList.toggle('dark');
-                    });
-                });
-            }
-        });
-    </script>
-
-    @yield('scripts')
+    @stack('scripts')
 </body>
 </html>

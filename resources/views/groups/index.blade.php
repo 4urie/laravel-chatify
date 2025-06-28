@@ -3,202 +3,163 @@
 @section('title', 'Groups')
 
 @section('sidebar')
-    <div class="p-4">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">Groups</h3>
-            <button id="create-group-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                + New Group
-            </button>
-        </div>
-        
-        <!-- My Groups -->
-        @if($groups->count() > 0)
-            <div class="mb-6">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">My Groups</h4>
-                @foreach($groups as $group)
-                    <a href="{{ route('groups.show', $group) }}" class="group-item flex items-center space-x-3 no-underline text-inherit">
-                        <div class="group-avatar">
-                            @if($group->image)
-                                <img src="{{ asset('storage/' . $group->image) }}" alt="{{ $group->name }}" class="w-10 h-10 rounded-full object-cover">
-                            @else
-                                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                                    {{ strtoupper(substr($group->name, 0, 2)) }}
-                                </div>
-                            @endif
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium truncate">{{ $group->name }}</p>
-                                <span class="text-xs text-gray-500">{{ $group->members_count }} members</span>
-                            </div>
-                            @if($group->latestMessage->first())
-                                <p class="text-xs text-gray-500 truncate">
-                                    {{ $group->latestMessage->first()->sender->name }}: 
-                                    {{ Str::limit($group->latestMessage->first()->message, 30) }}
-                                </p>
-                                <p class="text-xs text-gray-400">
-                                    {{ $group->latestMessage->first()->created_at->diffForHumans() }}
-                                </p>
-                            @else
-                                <p class="text-xs text-gray-500">No messages yet</p>
-                            @endif
-                        </div>
-                    </a>
-                @endforeach
+    @foreach($groups as $group)
+        <a href="{{ route('groups.show', $group) }}" 
+            class="flex items-center px-2 py-2 mx-2 rounded-lg hover:bg-gray-100">
+            <div class="relative">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center font-bold mr-3 bg-blue-100 text-blue-800">
+                    {{ strtoupper(substr($group->name, 0, 2)) }}
+                </div>
+                @if($group->active_members_count > 0)
+                    <div class="absolute bottom-0 right-3 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                @endif
             </div>
-        @endif
-
-        <div class="mt-4 pt-4 border-t">
-            <a href="{{ route('chat.index') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                💬 Private Chats
-            </a>
-        </div>
-    </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                    <p class="font-semibold truncate text-gray-900">{{ $group->name }}</p>
+                    @if($group->unread_count > 0)
+                        <span class="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full ml-2">{{ $group->unread_count }}</span>
+                    @endif
+                </div>
+                <p class="text-sm text-gray-600">{{ $group->members_count }} members</p>
+                @if(isset($group->latest_message))
+                    <div class="flex items-center text-sm text-gray-600">
+                        <span class="font-medium truncate">{{ $group->latest_message->sender->name }}:</span>
+                        <span class="truncate ml-1">{{ Str::limit($group->latest_message->message, 30) }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500">
+                        {{ $group->latest_message->created_at->diffForHumans() }}
+                    </p>
+                @endif
+            </div>
+        </a>
+    @endforeach
 @endsection
 
-@section('content')
-    <div class="flex items-center justify-center h-full bg-gray-50">
-        <div class="text-center">
-            <div class="mb-4">
-                <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
+@section('main-content')
+    <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white">
+        <h2 class="text-xl font-semibold text-gray-900">Groups</h2>
+        <button type="button" id="create-group-btn" class="p-2 hover:bg-gray-100 rounded-full text-gray-600">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 7c.55 0 1 .45 1 1v3h3c.55 0 1 .45 1 1s-.45 1-1 1h-3v3c0 .55-.45 1-1 1s-1-.45-1-1v-3H8c-.55 0-1-.45-1-1s.45-1 1-1h3V8c0-.55.45-1 1-1zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+        @if($groups->isEmpty())
+            <div class="flex items-center justify-center h-full text-gray-600">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58A2.01 2.01 0 0 0 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0 0 20 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-900">No Groups Yet</h3>
+                    <p class="text-sm text-gray-600">Create a group to start chatting with multiple people.</p>
+                    <button type="button" id="create-first-group-btn"
+                        class="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg">
+                        Create Group
+                    </button>
+                </div>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Welcome to Group Chats</h3>
-            <p class="text-sm text-gray-500 mb-4">
-                @if($groups->count() === 0)
-                    Create your first group to start collaborating with your team
-                @else
-                    Select a group from the sidebar to continue the conversation
-                @endif
-            </p>
-            
-            @if($groups->count() === 0)
-                <button id="create-first-group-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">
-                    Create Your First Group
-                </button>
-            @endif
-        </div>
+        @endif
     </div>
 
     <!-- Create Group Modal -->
-    <div id="create-group-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Create New Group</h3>
-                <form id="create-group-form" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="group-name" class="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
-                        <input type="text" 
-                               id="group-name" 
-                               name="name" 
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="Enter group name"
-                               required>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="group-description" class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
-                        <textarea id="group-description" 
-                                  name="description" 
-                                  rows="3"
-                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder="Enter group description"></textarea>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="group-image" class="block text-sm font-medium text-gray-700 mb-2">Group Image (Optional)</label>
-                        <input type="file" 
-                               id="group-image" 
-                               name="image" 
-                               accept="image/*"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Add Members (Optional)</label>
-                        <div class="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
-                            @foreach($users as $user)
-                                <label class="flex items-center space-x-2 mb-1">
-                                    <input type="checkbox" name="members[]" value="{{ $user->id }}" class="rounded">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-white text-xs">
-                                            {{ strtoupper(substr($user->name, 0, 1)) }}
-                                        </div>
-                                        <span class="text-sm">{{ $user->name }}</span>
-                                    </div>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div class="flex space-x-3">
-                        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium">
-                            Create Group
-                        </button>
-                        <button type="button" id="cancel-create-group" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg font-medium">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+    <div id="create-group-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Create New Group</h3>
             </div>
+            <form id="create-group-form" class="p-4">
+                @csrf
+                <div class="mb-4">
+                    <label for="group-name" class="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
+                    <input type="text" id="group-name" name="name" required
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-gray-900"
+                        placeholder="Enter group name">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Add Members</label>
+                    <div class="space-y-2 max-h-48 overflow-y-auto">
+                        @foreach($users as $user)
+                            @if($user->id !== Auth::id())
+                                <label class="flex items-center p-2 hover:bg-gray-100 rounded-lg">
+                                    <input type="checkbox" name="members[]" value="{{ $user->id }}"
+                                        class="rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                    <span class="ml-3 text-gray-700">{{ $user->name }}</span>
+                                </label>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                    <button type="button" id="cancel-create-group"
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg">
+                        Create Group
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
 
-@section('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Show create group modal
-            $('#create-group-btn, #create-first-group-btn').on('click', function() {
-                $('#create-group-modal').removeClass('hidden');
-            });
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const createGroupModal = document.getElementById('create-group-modal');
+        const createGroupForm = document.getElementById('create-group-form');
+        const createGroupBtn = document.getElementById('create-group-btn');
+        const createFirstGroupBtn = document.getElementById('create-first-group-btn');
+        const cancelCreateGroupBtn = document.getElementById('cancel-create-group');
 
-            // Hide create group modal
-            $('#cancel-create-group').on('click', function() {
-                $('#create-group-modal').addClass('hidden');
-                $('#create-group-form')[0].reset();
-            });
+        function showModal() {
+            createGroupModal.classList.remove('hidden');
+        }
 
-            // Hide modal when clicking outside
-            $('#create-group-modal').on('click', function(e) {
-                if (e.target === this) {
-                    $(this).addClass('hidden');
-                    $('#create-group-form')[0].reset();
+        function hideModal() {
+            createGroupModal.classList.add('hidden');
+            createGroupForm.reset();
+        }
+
+        createGroupBtn?.addEventListener('click', showModal);
+        createFirstGroupBtn?.addEventListener('click', showModal);
+        cancelCreateGroupBtn.addEventListener('click', hideModal);
+
+        createGroupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const members = Array.from(formData.getAll('members[]'));
+            
+            if (members.length === 0) {
+                alert('Please select at least one member for the group.');
+                return;
+            }
+
+            fetch('{{ route("groups.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    name: formData.get('name'),
+                    members: members
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect;
                 }
             });
-
-            // Handle form submission
-            $('#create-group-form').on('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                
-                $.ajax({
-                    url: '{{ route("groups.store") }}',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        window.location.href = response.redirect || '{{ route("groups.index") }}';
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            const errors = xhr.responseJSON.errors;
-                            let errorMessage = 'Please correct the following errors:\n';
-                            for (const field in errors) {
-                                errorMessage += '- ' + errors[field][0] + '\n';
-                            }
-                            alert(errorMessage);
-                        } else {
-                            alert('An error occurred while creating the group. Please try again.');
-                        }
-                    }
-                });
-            });
         });
-    </script>
-@endsection 
+    });
+</script>
+@endpush 
